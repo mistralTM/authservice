@@ -43,7 +43,7 @@ Password: `admin`
 9. Создание пользователя с ролью админ:
    `curl -X POST http://localhost:8080/api/auth/register -H "Content-Type: application/json" -d "{\"username\":\"adminn\",\"password\":\"adminn123\",\"email\":\"adminn@test.com\",\"roles\":[\"ADMIN\"]}"`
 10. Проверка доступа H2 Console:
-    `curl -X GET http://localhost:8080/api/h2-console`
+    `curl -X GET http://localhost:8080/h2-console`
 11. Проверка неверных данных:
     `curl -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d "{\"username\":\"wronguser\",\"password\":\"wrongpass\"}"`
 
