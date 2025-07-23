@@ -19,10 +19,7 @@ public class JwtService {
     @Getter
     private final long refreshExpiration;
 
-    public JwtService(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration.access}") long accessExpiration,
-            @Value("${jwt.expiration.refresh}") long refreshExpiration) {
+    public JwtService(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration.access}") long accessExpiration, @Value("${jwt.expiration.refresh}") long refreshExpiration) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.accessExpiration = accessExpiration;
         this.refreshExpiration = refreshExpiration;
@@ -37,12 +34,7 @@ public class JwtService {
     }
 
     private String buildToken(UserDetails userDetails, long expiration) {
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(secretKey)
-                .compact();
+        return Jwts.builder().subject(userDetails.getUsername()).issuedAt(new Date(System.currentTimeMillis())).expiration(new Date(System.currentTimeMillis() + expiration)).signWith(secretKey).compact();
     }
 
     public String extractUsername(String token) {
@@ -59,10 +51,6 @@ public class JwtService {
     }
 
     private Claims getTokenClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     }
 }

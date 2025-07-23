@@ -1,7 +1,8 @@
 package org.example.authservice.service;
 
-import org.example.authservice.dto.AuthResponse;
+import lombok.RequiredArgsConstructor;
 import org.example.authservice.dto.AuthRequest;
+import org.example.authservice.dto.AuthResponse;
 import org.example.authservice.dto.RegisterRequest;
 import org.example.authservice.exception.CustomException;
 import org.example.authservice.model.Role;
@@ -9,7 +10,6 @@ import org.example.authservice.model.User;
 import org.example.authservice.repository.UserRepository;
 import org.example.authservice.security.JwtService;
 import org.example.authservice.security.UserDetailsServiceImpl;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,16 +41,9 @@ public class AuthService {
             throw new CustomException("Email is already in use", HttpStatus.BAD_REQUEST);
         }
 
-        Set<Role> roles = request.getRoles() != null ?
-                new HashSet<>(request.getRoles()) :
-                new HashSet<>(Set.of(Role.GUEST));
+        Set<Role> roles = request.getRoles() != null ? new HashSet<>(request.getRoles()) : new HashSet<>(Set.of(Role.GUEST));
 
-        User user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .email(request.getEmail())
-                .roles(roles)
-                .build();
+        User user = User.builder().username(request.getUsername()).password(passwordEncoder.encode(request.getPassword())).email(request.getEmail()).roles(roles).build();
 
         userRepository.save(user);
 
@@ -61,18 +55,12 @@ public class AuthService {
         user.setRefreshTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getRefreshExpiration() / 1000));
         userRepository.save(user);
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .accessTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getAccessExpiration() / 1000))
-                .build();
+        return AuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken).accessTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getAccessExpiration() / 1000)).build();
     }
 
     // Остальные методы остаются без изменений
     public AuthResponse authenticate(AuthRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -80,18 +68,13 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+        User user = userRepository.findByUsername(request.getUsername()).orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         user.setRefreshToken(refreshToken);
         user.setRefreshTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getRefreshExpiration() / 1000));
         userRepository.save(user);
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .accessTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getAccessExpiration() / 1000))
-                .build();
+        return AuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken).accessTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getAccessExpiration() / 1000)).build();
     }
 
     public AuthResponse refreshToken(String refreshToken) {
@@ -101,11 +84,9 @@ public class AuthService {
             throw new CustomException("Invalid refresh token", HttpStatus.BAD_REQUEST);
         }
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-        if (!user.getRefreshToken().equals(refreshToken) ||
-                user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (!user.getRefreshToken().equals(refreshToken) || user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new CustomException("Refresh token is expired or invalid", HttpStatus.BAD_REQUEST);
         }
 
@@ -117,16 +98,11 @@ public class AuthService {
         user.setRefreshTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getRefreshExpiration() / 1000));
         userRepository.save(user);
 
-        return AuthResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .accessTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getAccessExpiration() / 1000))
-                .build();
+        return AuthResponse.builder().accessToken(newAccessToken).refreshToken(newRefreshToken).accessTokenExpiry(LocalDateTime.now().plusSeconds(jwtService.getAccessExpiration() / 1000)).build();
     }
 
     public void revokeToken(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         user.setRefreshToken(null);
         user.setRefreshTokenExpiry(null);
